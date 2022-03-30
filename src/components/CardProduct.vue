@@ -1,5 +1,6 @@
 <template>
-  <div class="card-product">
+  <div class="card-product" @mouseover="onMouseOver" @mouseleave="onMouseLeave"
+       :class="isCardHovered?'card-product__hover':''">
     <div class="card-product__image">
       <img src="../assets/test-product.png" alt="Photo product">
     </div>
@@ -7,7 +8,7 @@
       <span class="card-product__label">В наличии</span>
       <h1 class="card-product__name">Наименование товара 1</h1>
       <span class="card-product__price">1 000 ₽</span>
-      <div class="card-product__hover">
+      <div class="card-product__hidden" :class="isCardHovered?'card-product__hidden--active':''">
         <p class="card-product__description">Цвет - Тифани Краткое описание товара</p>
         <button class="card-product__button">
           <img src="../assets/cart.svg" alt="Icon cart" class="card-product__button--icon">
@@ -27,16 +28,34 @@ export default {
       required: true,
     },
   },
+  data: () => {
+    return {
+      isCardHovered: false
+    }
+  },
+  methods: {
+    onMouseOver() {
+      this.isCardHovered = true
+    },
+    onMouseLeave() {
+      this.isCardHovered = false
+    }
+  }
 }
 </script>
 
 <style lang="scss">
 .card-product {
   width: 305px;
-  //height: 560px;
   box-shadow: 0 6px 12px #D5E0EF;
   border: 1px solid #E4ECF9;
   background: #FFFFFF;
+  cursor: pointer;
+  margin-bottom: 145px;
+
+  &__hover {
+    margin-bottom: 30px;
+  }
 
   &__image {
     object-fit: cover;
@@ -73,9 +92,15 @@ export default {
     font-weight: 700;
     line-height: 30px;
   }
-  &__hover {
+
+  &__hidden {
     display: none;
+
+    &--active {
+      display: block;
+    }
   }
+
   &__description {
     font-size: 12px;
     line-height: 20px;
@@ -97,6 +122,7 @@ export default {
     border: none;
     box-shadow: 0 4px 8px #A9C2E9;
     border-radius: 6px;
+    cursor: pointer;
 
     &--icon {
       margin-right: 9px;
