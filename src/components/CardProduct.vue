@@ -1,44 +1,66 @@
 <template>
-  <div class="card-product" @mouseover="onMouseOver" @mouseleave="onMouseLeave"
-       :class="isCardHovered?'card-product__hover':''">
-    <div class="card-product__image">
-      <img src="../assets/test-product.png" alt="Photo product">
+  <div class="card-product" @mouseover="onMouseOver" @mouseleave="onMouseLeave">
+    <div class="card-product__top">
+      <img class="card-product__image" :src="product.image_url" alt="Photo product">
     </div>
     <div class="card-product__info">
-      <span class="card-product__label">В наличии</span>
-      <h1 class="card-product__name">Наименование товара 1</h1>
-      <span class="card-product__price">1 000 ₽</span>
-      <div class="card-product__hidden" :class="isCardHovered?'card-product__hidden--active':''">
-        <p class="card-product__description">Цвет - Тифани Краткое описание товара</p>
+      <span class="card-product__label card-product__label--stock" v-if="isAvailable">В наличии</span>
+      <span class="card-product__label card-product__label--order" v-else>Под заказ</span>
+      <h1 class="card-product__name">{{ product.name }}</h1>
+      <span class="card-product__price">{{ product.price + ' ₽' }}</span>
+
+      <div class="card-product__hidden" :class="cardHoveredClass">
+        <p class="card-product__text card-product__text--color">Цвет - {{ product.color }}</p>
+        <p class="card-product__text card-product__text--description">{{ product.short_desc }}</p>
         <button class="card-product__button">
           <img src="../assets/cart.svg" alt="Icon cart" class="card-product__button--icon">
           <span>В корзину</span>
         </button>
       </div>
     </div>
+
   </div>
 </template>
 
 <script>
+
 export default {
   name: "CardProduct",
   props: {
-    card: {
+    product: {
       type: Object,
       required: true,
     },
   },
   data: () => {
     return {
-      isCardHovered: false
+      isCardHovered: false,
+      isCardHovered2: false,
+      timeout: null,
+    }
+  },
+  computed: {
+    isAvailable() {
+      return this.product.availability > 0;
+    },
+    cardHoveredClass() {
+      let s = ''
+      s += this.isCardHovered ? ' card-product__hidden--active' : ''
+      s += this.isCardHovered2 ? ' card-product__hidden--delayed-active' : ''
+      return s
     }
   },
   methods: {
     onMouseOver() {
       this.isCardHovered = true
+      this.isCardHovered2 = true
+      clearTimeout(this.timeout)
     },
     onMouseLeave() {
       this.isCardHovered = false
+      this.timeout = setTimeout(() => {
+        this.isCardHovered2 = false
+      }, 400)
     }
   }
 }
@@ -51,14 +73,8 @@ export default {
   border: 1px solid #E4ECF9;
   background: #FFFFFF;
   cursor: pointer;
-  margin-bottom: 145px;
 
-  &__hover {
-    margin-bottom: 30px;
-  }
-
-  &__image {
-    object-fit: cover;
+  &__top {
     padding: 20px;
     height: 305px;
     width: 100%;
@@ -67,17 +83,31 @@ export default {
     border-bottom-color: #E4ECF9;
   }
 
+  &__image {
+    object-fit: cover;
+    width: 265px;
+    height: 265px;
+  }
+
   &__info {
     padding: 20px;
+    position: relative;
   }
 
   &__label {
-    background: #76CB22;
     color: #FFFFFF;
     font-size: 12px;
     line-height: 20px;
-    font-weight: 700;
     padding: 6px 8px;
+
+    &--stock {
+      background: #76CB22;
+      font-weight: 700;
+    }
+
+    &--order {
+      background: #A6C3EE;
+    }
   }
 
   &__name {
@@ -94,18 +124,32 @@ export default {
   }
 
   &__hidden {
-    display: none;
+    position: absolute;
+    opacity: 0;
+    transition: 0.5s linear;
+    animation-name: show;
 
     &--active {
-      display: block;
+      opacity: 1;
+    }
+
+    &--delayed-active {
+      position: relative;
     }
   }
 
-  &__description {
+  &__text {
     font-size: 12px;
     line-height: 20px;
     color: #6C7683;
-    margin: 11px 0 20px 0;
+
+    &--color {
+      margin: 11px 0;
+    }
+
+    &--description {
+      margin: 0 0 20px 0;
+    }
   }
 
   &__button {

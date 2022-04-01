@@ -3,9 +3,9 @@
     <div class="container">
       <div class="app__cards">
         <CardProduct
-            v-for="(card, index) in cards"
+            v-for="(product, index) in GET_PRODUCTS"
             :key="index"
-            :card="card"
+            :product="product"
             class="app__card"
         />
       </div>
@@ -19,15 +19,52 @@
 <script>
 import CardProduct from "@/components/CardProduct";
 import Pagination from "./components/Pagination";
+import {mapActions, mapGetters} from "vuex";
 
 export default {
   name: 'App',
-  components: {Pagination, CardProduct},
   data: () => {
     return {
-      cards: [{}, {}]
+      windowInnerWidth: 0,
     }
+  },
+  components: {Pagination, CardProduct},
+  computed: {
+    ...mapGetters(['GET_PRODUCTS', 'GET_TOTAL_COUNT']),
+    productsCount() {
+      return this.GET_TOTAL_COUNT
+    },
+  },
+  methods: {
+    ...mapActions(['SELECT_PAGE', 'SET_PRODUCTS_IN_ROW', 'SET_PAGES_IN_ROW']),
+    onResize() {
+      if (this.windowInnerWidth === window.innerWidth) {
+        return;
+      }
+      this.windowInnerWidth = window.innerWidth;
+      if (this.windowInnerWidth <= 1300 && this.windowInnerWidth > 992) {
+        this.SET_PRODUCTS_IN_ROW(3)
+        this.SET_PAGES_IN_ROW(4)
+      } else if (this.windowInnerWidth <= 992 && this.windowInnerWidth > 768) {
+        this.SET_PRODUCTS_IN_ROW(2)
+        this.SET_PAGES_IN_ROW(2)
+      } else if (this.windowInnerWidth <= 768) {
+        this.SET_PRODUCTS_IN_ROW(1)
+        this.SET_PAGES_IN_ROW(2)
+      } else {
+        this.SET_PRODUCTS_IN_ROW(4)
+        this.SET_PAGES_IN_ROW(4)
+      }
+    },
+  },
+  mounted() {
+    this.SELECT_PAGE(1);
+  },
+  created() {
+    this.onResize();
+    window.addEventListener('resize', this.onResize);
   }
+
 }
 </script>
 
@@ -37,7 +74,7 @@ export default {
 }
 
 body {
-  margin: 0;
+  margin: 40px 0;
   background: #FFFFFF;
   font-family: 'Roboto', sans-serif;
   font-style: normal;
@@ -45,8 +82,6 @@ body {
   font-size: 16px;
   line-height: 26px;
   color: #4F545F;
-  height: 45em;
-  position: relative;
 }
 
 .app {
@@ -55,9 +90,9 @@ body {
 
   &__cards {
     width: 100%;
+    height: 640px;
     display: flex;
     align-items: start;
-    justify-content: center;
   }
 
   &__card {
@@ -72,15 +107,10 @@ body {
 .container {
   max-width: 1280px;
   width: 100%;
-  margin: 0;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  margin: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-wrap: wrap;
 }
 
 @media (max-width: 1300px) {

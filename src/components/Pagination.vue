@@ -30,86 +30,88 @@
 
 <script>
 import ItemPagination from "./ItemPagination";
+import {mapActions, mapGetters} from "vuex";
 
 export default {
   name: "Pagination",
   components: {ItemPagination},
   data: () => {
     return {
-      productsCount: 38,
-      selectedPage: 1,
-      pagesCount: 1,
       pagesFrom: 1,
-      pagesInRow: 4,
     }
   },
   computed: {
+    ...mapGetters(['GET_TOTAL_COUNT', 'GET_SELECTED_PAGE', 'GET_PRODUCTS_IN_ROW', 'GET_PAGES_IN_ROW']),
+    selectedPage() {
+      return this.GET_SELECTED_PAGE
+    },
+    pagesTotalCount() {
+      let count = Math.ceil(this.GET_TOTAL_COUNT / this.GET_PRODUCTS_IN_ROW)
+      if (count < 1) {
+        count = 1
+      }
+      return count
+    },
     paginations() {
-      let len = this.pagesInRow
-      if (len > this.pagesCount) {
-        len = this.pagesCount
+      // decrease window case
+      if (this.selectedPage > this.pagesTotalCount) {
+        let pagesFrom = this.pagesTotalCount - this.GET_PAGES_IN_ROW + 1
+        if (pagesFrom <= 0) {
+          pagesFrom = 1
+        }
+        this.pagesFrom = pagesFrom
+        this.onSelectPage(this.pagesTotalCount)
+      }
+      // increase window case
+      if (this.selectedPage >= this.pagesFrom + this.GET_PAGES_IN_ROW) {
+        this.pagesFrom = this.selectedPage
+        this.onSelectPage(this.selectedPage)
+      }
+      let len = this.GET_PAGES_IN_ROW
+      if (len > this.pagesTotalCount) {
+        len = this.pagesTotalCount
       }
       return Array(len).fill(0).map((el, index) => (this.pagesFrom + index))
     },
     isNotActiveNext() {
-      return this.pagesFrom === this.pagesCount - this.pagesInRow + 1
+      return this.pagesFrom >= this.pagesTotalCount - this.GET_PAGES_IN_ROW + 1
     },
     isNotActivePrev() {
       return this.pagesFrom === 1
     },
   },
   methods: {
+    ...mapActions(['SELECT_PAGE', 'PAGE_IN_ROW']),
     onSelectPage(page) {
-      this.selectedPage = page
-      console.log("selectedPage", this.selectedPage)
+      if (page > this.pagesTotalCount) {
+        page = this.pagesTotalCount
+      }
+      this.SELECT_PAGE(page)
     },
     onNextClick() {
-      this.pagesFrom += this.pagesInRow
-      if (this.pagesFrom + this.pagesInRow > this.pagesCount) {
-        this.pagesFrom = this.pagesCount - this.pagesInRow + 1
-        if (this.pagesInRow > this.pagesCount) {
+      const pagesInRow = this.GET_PAGES_IN_ROW
+      this.pagesFrom += pagesInRow
+      if (this.pagesFrom + pagesInRow > this.pagesTotalCount) {
+        this.pagesFrom = this.pagesTotalCount - pagesInRow + 1
+        if (pagesInRow > this.pagesTotalCount) {
           this.pagesFrom = 1
         }
       }
-
       if (this.selectedPage < this.pagesFrom) {
-        this.selectedPage = this.pagesFrom
+        this.SELECT_PAGE(this.pagesFrom)
       }
     },
     onBackClick() {
-      this.pagesFrom -= this.pagesInRow
+      const pagesInRow = this.GET_PAGES_IN_ROW
+      this.pagesFrom -= pagesInRow
       if (this.pagesFrom <= 0) {
         this.pagesFrom = 1
       }
 
-      if (this.selectedPage >= this.pagesFrom + this.pagesInRow) {
-        this.selectedPage = this.pagesFrom
+      if (this.selectedPage >= this.pagesFrom + pagesInRow) {
+        this.SELECT_PAGE(this.pagesFrom)
       }
     },
-    computePagesCount() {
-      let count, width = window.innerWidth;
-      if (width <= 1300 && width > 992) {
-        count = Math.ceil(this.productsCount / 3)
-      } else if (width <= 992 && width > 768) {
-        count = Math.ceil(this.productsCount / 2)
-      } else if (width <= 768) {
-        count = Math.ceil(this.productsCount)
-      } else {
-        count = Math.ceil(this.productsCount / 4)
-      }
-      if (count < 1) {
-        count = 1
-      }
-      console.log("width", width, "pages count", count)
-      return count
-    },
-    onResize() {
-      this.pagesCount = this.computePagesCount()
-    }
-  },
-  created() {
-    this.pagesCount = this.computePagesCount()
-    window.addEventListener('resize', this.onResize);
   },
 }
 </script>
